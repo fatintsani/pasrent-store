@@ -71,7 +71,7 @@ export function Navbar() {
             href="/cek-pesanan"
             className="hover:text-[#5000ef] dark:hover:text-[#00c3cb] transition-colors"
           >
-            Lacak
+            Lacak Tiket
           </Link>
           <Link
             href="/faq"
