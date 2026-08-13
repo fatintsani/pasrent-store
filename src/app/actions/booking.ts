@@ -28,8 +28,7 @@ export async function submitBooking(formData: FormData) {
       return { success: false, error: "Keranjang kosong." };
     }
 
-    const cookieStore = await cookies();
-    const supabase = await createClient(cookieStore);
+    const supabase = await createClient();
 
     // Calculate total price
     let totalPrice = 0;

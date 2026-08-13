@@ -329,7 +329,7 @@ const flattenItems = (items: NavItemData[]): NavItemData[] => {
 };
 const flatMockData = flattenItems(allItems);
 
-export default function SidebarNavPreview({ user }: { user?: any }) {
+export default function SidebarNavPreview({ user, children }: { user?: any, children?: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(true);
   const [activeId, setActiveId] = useState('home');
   const [activeWorkspace, setActiveWorkspace] = useState('Pasrent Store');
@@ -400,29 +400,10 @@ export default function SidebarNavPreview({ user }: { user?: any }) {
              </div>
            </div>
 
-           <div className="p-6 md:p-8 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-             <div className="flex items-center justify-between mb-8">
-               <div className="w-48 h-8 bg-black/5 dark:bg-white/5 rounded-md" />
-             </div>
-             
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-               <div className="h-32 bg-card rounded-xl border border-border/50 shadow-sm" />
-               <div className="h-32 bg-card rounded-xl border border-border/50 shadow-sm" />
-             </div>
-
-             <div className="w-full bg-card rounded-xl border border-border/50 shadow-sm p-6">
-                <div className="w-1/3 h-5 bg-black/5 dark:bg-white/5 rounded-md mb-6" />
-                <div className="w-full h-[1px] bg-border/50 mb-6" />
-                
-                <div className="flex flex-col gap-4">
-                <div className="w-full h-12 bg-black/5 dark:bg-white/5 rounded-lg" />
-                <div className="w-full h-12 bg-black/5 dark:bg-white/5 rounded-lg" />
-                <div className="w-full h-12 bg-black/5 dark:bg-white/5 rounded-lg" />
-                <div className="w-full h-12 bg-black/5 dark:bg-white/5 rounded-lg" />
-               </div>
-             </div>
-           </div>
-        </div>
+            <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+              {children}
+            </div>
+         </div>
 
         {isSearchOpen && (
           <div className="absolute inset-0 z-50 flex items-start justify-center pt-[15vh] bg-background/40 backdrop-blur-sm px-4">

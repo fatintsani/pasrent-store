@@ -5,14 +5,22 @@ export const metadata: Metadata = {
   description: "Pasrent Store Admin Dashboard",
 };
 
-export default function AdminLayout({
+import { createClient } from "@/utils/supabase/server";
+import SidebarNavPreview from "@/components/ui/dashboard-sidebar";
+
+export default async function AdminLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-[#0d0e11] font-sans">
-      {children}
+    <div className="min-h-screen font-sans">
+      <SidebarNavPreview user={user}>
+        {children}
+      </SidebarNavPreview>
     </div>
   );
 }

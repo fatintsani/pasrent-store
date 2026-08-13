@@ -4,8 +4,7 @@ import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
 
 export async function getBookedIntervals(consoleType: string) {
-  const cookieStore = await cookies();
-  const supabase = await createClient(cookieStore);
+  const supabase = await createClient();
 
   // Get total units for this console type
   const { data: units, error: unitsError } = await supabase
