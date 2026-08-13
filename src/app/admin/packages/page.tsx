@@ -1,5 +1,7 @@
 import { createClient } from "@/utils/supabase/server";
-import { Plus, Edit2, Trash2, Clock, Tag } from "lucide-react";
+import { Plus, Clock, Tag } from "lucide-react";
+import Link from "next/link";
+import PackageActions from "./package-actions";
 
 export default async function AdminPackagesPage() {
   const supabase = await createClient();
@@ -17,9 +19,9 @@ export default async function AdminPackagesPage() {
           <h1 className="text-3xl font-bold tracking-tight">Paket Harga</h1>
           <p className="text-muted-foreground mt-1">Atur variasi durasi dan harga sewa untuk PS3 dan PS4.</p>
         </div>
-        <button className="flex items-center gap-2 bg-[#5000ef] hover:bg-[#4000c0] text-white px-5 py-2.5 rounded-xl font-bold transition shadow-sm">
+        <Link href="/admin/packages/new" className="flex items-center gap-2 bg-[#5000ef] hover:bg-[#4000c0] text-white px-5 py-2.5 rounded-xl font-bold transition shadow-sm">
           <Plus className="w-5 h-5" /> Tambah Paket
-        </button>
+        </Link>
       </div>
 
       <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-3xl shadow-sm overflow-hidden">
@@ -67,14 +69,7 @@ export default async function AdminPackagesPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <button className="p-2 text-gray-400 hover:text-[#5000ef] dark:hover:text-[#00c3cb] transition">
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button className="p-2 text-gray-400 hover:text-red-500 transition">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
+                      <PackageActions id={pkg.id} />
                     </td>
                   </tr>
                 ))
