@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -23,6 +23,7 @@ import {
   Blocks,
   PanelLeftClose,
   PanelLeftOpen,
+  Clock,
   Command,
   X,
   Ticket,
@@ -264,6 +265,30 @@ function NavItem({
   );
 }
 
+function LiveClock() {
+  const [time, setTime] = useState<Date | null>(null);
+
+  useEffect(() => {
+    setTime(new Date());
+    const timer = setInterval(() => {
+      setTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  if (!time) return <div className="hidden md:block w-32 h-8 bg-black/5 dark:bg-white/5 rounded-md animate-pulse" />;
+
+  return (
+    <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-black/5 dark:bg-white/5 rounded-md text-sm font-medium text-muted-foreground border border-black/5 dark:border-white/5 shadow-sm">
+      <Clock className="w-4 h-4 text-[#5000ef] dark:text-[#00c3cb]" />
+      {time.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+      <span className="text-xs text-muted-foreground/70 hidden lg:inline-block ml-1 border-l border-black/10 dark:border-white/10 pl-2">
+        {time.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' })}
+      </span>
+    </div>
+  );
+}
+
 export function SidebarNav({ 
   className = '',
   activeId,
@@ -383,7 +408,7 @@ export default function SidebarNavPreview({ user, children }: { user?: any, chil
              </div>
              
              <div className="flex items-center gap-3">
-               <div className="w-64 h-8 bg-black/5 dark:bg-white/5 rounded-md hidden md:block" />
+               <LiveClock />
                {user ? (
                  <div className="flex items-center gap-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full py-1 pr-4 pl-1 shadow-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition">
                    <div className="w-8 h-8 bg-gradient-to-r from-[#5000ef] to-[#00c3cb] rounded-full flex items-center justify-center text-white font-bold text-sm shadow-inner">
