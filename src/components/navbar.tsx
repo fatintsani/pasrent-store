@@ -62,6 +62,12 @@ export function Navbar() {
             Konsol
           </Link>
           <Link
+            href="/games"
+            className="hover:text-[#5000ef] dark:hover:text-[#00c3cb] transition-colors"
+          >
+            Katalog Game
+          </Link>
+          <Link
             href="/booking"
             className="hover:text-[#5000ef] dark:hover:text-[#00c3cb] transition-colors"
           >
