@@ -3,19 +3,29 @@ import { format } from "date-fns";
 import { id } from "date-fns/locale";
 
 export async function sendBookingEmail(to: string, bookingData: any, cartItems: any[]) {
-  // Hanya jalankan jika EMAIL_USER dan EMAIL_PASS di-set
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+  const isDev = process.env.NODE_ENV === "development";
+
+  // Hanya jalankan cek credential jika di production
+  if (!isDev && (!process.env.EMAIL_USER || !process.env.EMAIL_PASS)) {
     console.warn("Email service is not configured. Missing EMAIL_USER or EMAIL_PASS.");
     return false;
   }
 
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
+  // Gunakan Mailpit untuk development, Gmail untuk production
+  const transporter = isDev 
+    ? nodemailer.createTransport({
+        host: "localhost",
+        port: 1025,
+        secure: false,
+        ignoreTLS: true,
+      })
+    : nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS,
+        },
+      });
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
   const ticketUrl = `${appUrl}/ticket/${bookingData.booking_code}`;
