@@ -17,7 +17,7 @@ export default async function AdminLayout({
   const { data: { user } } = await supabase.auth.getUser();
 
   return (
-    <div className="min-h-screen font-sans">
+    <div className="min-h-screen">
       <SidebarNavPreview user={user}>
         {children}
       </SidebarNavPreview>

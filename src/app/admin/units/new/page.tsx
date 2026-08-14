@@ -1,15 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Loader2, Save } from "lucide-react";
 import Link from "next/link";
 import { createUnit } from "@/app/actions/admin/units";
+import { getConsoleTypes } from "@/app/actions/admin/console-types";
 
 export default function NewUnitPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [consoleTypes, setConsoleTypes] = useState<any[]>([]);
+  const [loadingTypes, setLoadingTypes] = useState(true);
+
+  useEffect(() => {
+    async function loadTypes() {
+      const res = await getConsoleTypes();
+      if (res.success) {
+        setConsoleTypes(res.data);
+      }
+      setLoadingTypes(false);
+    }
+    loadTypes();
+  }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -28,7 +42,7 @@ export default function NewUnitPage() {
   }
 
   return (
-    <div className="p-8 max-w-3xl mx-auto">
+    <div className="p-4 md:p-8 w-full mx-auto space-y-6">
       <div className="mb-6 flex items-center gap-4">
         <Link
           href="/admin/units"
@@ -42,7 +56,7 @@ export default function NewUnitPage() {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-3xl shadow-sm p-8">
+      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 md:p-8 space-y-6">
         {errorMsg && (
           <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800/30 rounded-xl text-sm font-medium">
             {errorMsg}
@@ -51,7 +65,7 @@ export default function NewUnitPage() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label htmlFor="name" className="text-sm font-bold text-gray-700 dark:text-gray-300">
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
               Nama Unit <span className="text-red-500">*</span>
             </label>
             <input
@@ -66,22 +80,25 @@ export default function NewUnitPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label htmlFor="type" className="text-sm font-bold text-gray-700 dark:text-gray-300">
+              <label htmlFor="console_type_id" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                 Tipe Konsol <span className="text-red-500">*</span>
               </label>
               <select
-                id="type"
-                name="type"
+                id="console_type_id"
+                name="console_type_id"
                 required
+                disabled={loadingTypes}
                 className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5000ef]/50 transition appearance-none"
               >
-                <option value="PS3">PlayStation 3 (PS3)</option>
-                <option value="PS4">PlayStation 4 (PS4)</option>
+                <option value="">Pilih Tipe Konsol</option>
+                {consoleTypes.map(ct => (
+                  <option key={ct.id} value={ct.id}>{ct.name} ({ct.code})</option>
+                ))}
               </select>
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="status" className="text-sm font-bold text-gray-700 dark:text-gray-300">
+              <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                 Status Ketersediaan <span className="text-red-500">*</span>
               </label>
               <select
@@ -98,7 +115,7 @@ export default function NewUnitPage() {
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="serial_number" className="text-sm font-bold text-gray-700 dark:text-gray-300">
+            <label htmlFor="serial_number" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
               Serial Number (Opsional)
             </label>
             <input

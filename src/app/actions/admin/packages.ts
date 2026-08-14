@@ -9,18 +9,18 @@ export async function createPackage(formData: FormData) {
     
     const name = formData.get("name") as string;
     const description = formData.get("description") as string;
-    const console_type = formData.get("console_type") as string;
+    const console_type_id = formData.get("console_type_id") as string;
     const duration_hours = parseInt(formData.get("duration_hours") as string, 10);
     const price = parseInt(formData.get("price") as string, 10);
 
-    if (!name || !console_type || isNaN(duration_hours) || isNaN(price)) {
+    if (!name || !console_type_id || isNaN(duration_hours) || isNaN(price)) {
       return { success: false, error: "Semua field yang wajib harus diisi dengan benar." };
     }
 
     const { error } = await supabase.from("rental_packages").insert({
       name,
       description: description || null,
-      console_type,
+      console_type_id,
       duration_hours,
       price,
     });
@@ -42,18 +42,18 @@ export async function updatePackage(id: string, formData: FormData) {
     
     const name = formData.get("name") as string;
     const description = formData.get("description") as string;
-    const console_type = formData.get("console_type") as string;
+    const console_type_id = formData.get("console_type_id") as string;
     const duration_hours = parseInt(formData.get("duration_hours") as string, 10);
     const price = parseInt(formData.get("price") as string, 10);
 
-    if (!name || !console_type || isNaN(duration_hours) || isNaN(price)) {
+    if (!name || !console_type_id || isNaN(duration_hours) || isNaN(price)) {
       return { success: false, error: "Semua field yang wajib harus diisi dengan benar." };
     }
 
     const { error } = await supabase.from("rental_packages").update({
       name,
       description: description || null,
-      console_type,
+      console_type_id,
       duration_hours,
       price,
     }).eq("id", id);

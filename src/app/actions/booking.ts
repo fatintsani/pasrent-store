@@ -1,7 +1,9 @@
 "use server";
 
 import { createClient } from "@/utils/supabase/server";
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { cookies } from "next/headers";
+import { snap, coreApi } from "@/lib/midtrans";
 
 export async function submitBooking(formData: FormData) {
   try {
@@ -9,6 +11,7 @@ export async function submitBooking(formData: FormData) {
     const whatsapp = formData.get("whatsapp")?.toString();
     const email = formData.get("email")?.toString();
     const alamat = formData.get("alamat")?.toString();
+    const paymentMethod = formData.get("payment-method")?.toString() || 'transfer';
     
     // We expect the frontend to pass a JSON string of the cart items
     const cartStr = formData.get("cart")?.toString();
@@ -45,8 +48,8 @@ export async function submitBooking(formData: FormData) {
       customer_email: email || null,
       delivery_address: alamat || null,
       total_price: totalPrice,
-      payment_method: 'transfer',
-      payment_status: 'pending',
+      payment_method: paymentMethod,
+      payment_status: paymentMethod === 'cod' ? 'unpaid' : 'pending',
       status: 'pending',
     };
 
@@ -99,9 +102,83 @@ export async function submitBooking(formData: FormData) {
       });
     }
 
-    return { success: true, bookingCode: booking.booking_code };
+    if (paymentMethod === 'cod') {
+      return { success: true, bookingCode: booking.booking_code };
+    }
+
+    // Create Midtrans Snap Transaction
+    const parameter = {
+      transaction_details: {
+        order_id: booking.booking_code,
+        gross_amount: totalPrice
+      },
+      customer_details: {
+        first_name: nama,
+        email: email || undefined,
+        phone: whatsapp
+      }
+    };
+
+    const snapToken = await snap.createTransactionToken(parameter);
+
+    return { success: true, bookingCode: booking.booking_code, snapToken };
   } catch (err: any) {
     console.error("Submit Booking Error:", err);
     return { success: false, error: err.message || "Unknown error occurred" };
+  }
+}
+
+export async function checkPaymentStatus(bookingCode: string) {
+  try {
+    const statusResponse = await coreApi.transaction.status(bookingCode);
+    const transactionStatus = statusResponse.transaction_status;
+    const fraudStatus = statusResponse.fraud_status;
+
+    let newPaymentStatus = 'pending';
+    
+    if (transactionStatus === 'capture') {
+        if (fraudStatus === 'challenge') {
+            newPaymentStatus = 'challenge';
+        } else if (fraudStatus === 'accept') {
+            newPaymentStatus = 'paid';
+        }
+    } else if (transactionStatus === 'settlement') {
+        newPaymentStatus = 'paid';
+    } else if (transactionStatus === 'cancel' || transactionStatus === 'deny' || transactionStatus === 'expire') {
+        newPaymentStatus = 'failed';
+    } else if (transactionStatus === 'pending') {
+        newPaymentStatus = 'pending';
+    }
+
+    let newStatus = 'pending';
+    if (newPaymentStatus === 'paid') newStatus = 'confirmed';
+    if (newPaymentStatus === 'failed') newStatus = 'cancelled';
+
+    // Use Service Role to bypass RLS
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+    const supabase = createSupabaseClient(supabaseUrl, supabaseServiceKey);
+
+    const { error } = await supabase
+      .from('bookings')
+      .update({
+        payment_status: newPaymentStatus,
+        status: newStatus
+      })
+      .eq('booking_code', bookingCode);
+
+    if (error) {
+      console.error('Failed to update booking status in Supabase:', error);
+      return { success: false, error: 'Database update failed' };
+    }
+
+    return { success: true, paymentStatus: newPaymentStatus, status: newStatus };
+  } catch (error: any) {
+    console.error('Check status error:', error);
+    // 404 from Midtrans means transaction doesn't exist (e.g., COD or not created yet)
+    if (error.httpStatusCode === 404) {
+        return { success: false, error: "Transaksi tidak ditemukan di sistem pembayaran." };
+    }
+    return { success: false, error: "Gagal mengecek status. Coba beberapa saat lagi." };
   }
 }

@@ -7,15 +7,35 @@ export async function getBookedIntervals(consoleType: string) {
   const supabase = await createClient();
 
   // Get total units for this console type
-  const { data: units, error: unitsError } = await supabase
+  const { data: allUnits, error: unitsError } = await supabase
     .from("units")
-    .select("id")
-    .eq("type", consoleType)
+    .select(`
+      id,
+      type,
+      console_types (
+        code
+      )
+    `)
     .in("status", ["available"]);
     
-  if (unitsError || !units) {
+  if (unitsError || !allUnits) {
     return { success: false, data: [] };
   }
+
+  // Filter units matching the consoleType (handling both legacy type and console_types.code)
+  const units = allUnits.filter((u: any) => {
+    const rawCode = u.console_types?.code || u.type;
+    let normCode = rawCode;
+    if (rawCode === 'CONSOLE-PS4') normCode = 'PS4';
+    if (rawCode === 'CONSOLE-PS3') normCode = 'PS3';
+    
+    let targetCode = consoleType;
+    if (consoleType === 'CONSOLE-PS4') targetCode = 'PS4';
+    if (consoleType === 'CONSOLE-PS3') targetCode = 'PS3';
+    
+    return normCode === targetCode;
+  });
+
   const totalUnits = units.length;
 
   if (totalUnits === 0) {

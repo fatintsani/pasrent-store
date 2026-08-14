@@ -102,3 +102,73 @@ html.dark ::-webkit-scrollbar-track {
 html.dark ::-webkit-scrollbar-thumb {
   border: 2px solid #0d0e11;
 }
+
+/* Settings Provider Classes */
+
+/* Reading Mode: sepia background, darker text, low contrast */
+html.reading-mode {
+  --background: #fdf6e3;
+  --foreground: #657b83;
+  --card: #eee8d5;
+  --card-foreground: #586e75;
+  --border: #e8dfc7;
+}
+
+html.reading-mode.dark {
+  --background: #1e1e1e;
+  --foreground: #d4d4d4;
+  --card: #252526;
+  --card-foreground: #d4d4d4;
+  --border: #3c3c3c;
+}
+
+/* High Contrast: pure black/white */
+html.high-contrast {
+  --background: #ffffff;
+  --foreground: #000000;
+  --card: #ffffff;
+  --card-foreground: #000000;
+  --primary: #0000ff;
+  --primary-foreground: #ffffff;
+  --border: #000000;
+}
+
+html.high-contrast.dark {
+  --background: #000000;
+  --foreground: #ffffff;
+  --card: #000000;
+  --card-foreground: #ffffff;
+  --primary: #ffff00;
+  --primary-foreground: #000000;
+  --border: #ffffff;
+}
+
+/* Font Sizes */
+html.font-size-sm {
+  font-size: 14px;
+}
+
+html.font-size-md {
+  font-size: 16px;
+}
+
+html.font-size-lg {
+  font-size: 18px;
+}
+
+/* Font Families */
+html.font-family-jakarta {
+  font-family: var(--font-plus-jakarta), sans-serif;
+}
+html.font-family-poppins {
+  font-family: var(--font-poppins), sans-serif;
+}
+html.font-family-inter {
+  font-family: var(--font-inter), sans-serif;
+}
+html.font-family-roboto {
+  font-family: var(--font-roboto), sans-serif;
+}
+html.font-family-outfit {
+  font-family: var(--font-outfit), sans-serif;
+}

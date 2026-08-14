@@ -12,8 +12,12 @@ export default function AdminScannerPage() {
   const [status, setStatus] = useState<{ success: boolean; message: string; bookingId?: string } | null>(null);
 
   useEffect(() => {
-    if (!scanResult) {
-      const scanner = new Html5QrcodeScanner(
+    let scanner: Html5QrcodeScanner | null = null;
+    
+    // Check if element exists before initializing
+    const element = document.getElementById("qr-reader");
+    if (!scanResult && element) {
+      scanner = new Html5QrcodeScanner(
         "qr-reader",
         { 
           fps: 10, 
@@ -25,19 +29,22 @@ export default function AdminScannerPage() {
       
       scanner.render(
         (decodedText) => {
-          // Found a QR Code
           setScanResult(decodedText);
-          scanner.clear(); // Stop scanning once we got a result
+          if (scanner) {
+            scanner.clear().catch(console.error);
+          }
         },
         (error) => {
-          // ignore scan errors, they happen continuously until a QR is found
+          // ignore scan errors
         }
       );
-
-      return () => {
-        scanner.clear().catch(e => console.error("Failed to clear scanner", e));
-      };
     }
+
+    return () => {
+      if (scanner) {
+        scanner.clear().catch(console.error);
+      }
+    };
   }, [scanResult]);
 
   useEffect(() => {
@@ -67,7 +74,7 @@ export default function AdminScannerPage() {
   };
 
   return (
-    <div className="p-8 max-w-3xl mx-auto">
+    <div className="p-4 md:p-8 w-full max-w-4xl mx-auto space-y-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight">Admin Scanner</h1>
         <p className="text-muted-foreground mt-2">
@@ -75,12 +82,56 @@ export default function AdminScannerPage() {
         </p>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-3xl shadow-sm overflow-hidden p-6 flex flex-col items-center">
+      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 md:p-8 flex flex-col items-center animate-in fade-in duration-500">
         
         {!scanResult ? (
           <div className="w-full max-w-sm">
+            {/* Styles override for html5-qrcode library default ugly UI */}
+            <style jsx global>{`
+              #qr-reader {
+                border: none !important;
+                box-shadow: none !important;
+              }
+              #qr-reader img {
+                margin: 0 auto !important;
+                display: block;
+                margin-bottom: 15px !important;
+              }
+              #qr-reader__dashboard_section_csr span,
+              #qr-reader__dashboard_section_csr div {
+                text-align: center !important;
+                display: block !important;
+              }
+              #qr-reader__dashboard_section_swaplink {
+                text-decoration: none !important;
+                color: #5000ef !important;
+                font-weight: 600 !important;
+                display: block !important;
+                margin-top: 15px !important;
+                text-align: center !important;
+              }
+              #qr-reader button {
+                background-color: #5000ef !important;
+                color: white !important;
+                border: none !important;
+                padding: 10px 20px !important;
+                border-radius: 12px !important;
+                font-weight: 700 !important;
+                cursor: pointer !important;
+                margin: 10px auto !important;
+                display: block !important;
+                transition: opacity 0.2s;
+              }
+              #qr-reader button:hover {
+                opacity: 0.9;
+              }
+              #qr-reader__camera_permission_button {
+                background-color: #00c3cb !important;
+              }
+            `}</style>
+            
             {/* The QR Scanner Container */}
-            <div id="qr-reader" className="w-full rounded-2xl overflow-hidden [&_video]:rounded-2xl [&_video]:object-cover" />
+            <div id="qr-reader" className="w-full overflow-hidden [&_video]:rounded-2xl [&_video]:object-cover" />
             <p className="text-center text-sm text-gray-500 mt-4">Arahkan kamera ke QR Code pelanggan.</p>
           </div>
         ) : (

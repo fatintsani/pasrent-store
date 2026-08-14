@@ -32,6 +32,8 @@ import {
   Tv,
   Wallet
 } from 'lucide-react';
+import { logout } from '@/app/actions/auth';
+import { globalSearch, SearchResultItem } from '@/app/actions/admin/search';
 
 export type NavItemData = {
   id: string;
@@ -59,6 +61,7 @@ const mockNavGroups: NavGroupData[] = [
     heading: 'Operasional',
     items: [
       { id: 'bookings', title: 'Kelola Pesanan', icon: Ticket, href: '/admin/bookings' },
+      { id: 'customers', title: 'Data Pelanggan', icon: Users, href: '/admin/customers' },
       { id: 'scanner', title: 'Admin Scanner', icon: ScanLine, href: '/admin/scanner' },
     ]
   },
@@ -74,7 +77,8 @@ const mockNavGroups: NavGroupData[] = [
 ];
 
 const mockBottomItems: NavItemData[] = [
-  { id: 'settings', title: 'Settings', icon: Settings, shortcut: '⌘,' },
+  { id: 'users', title: 'Admin Users', icon: Users, href: '/admin/users' },
+  { id: 'settings', title: 'Settings', icon: Settings, href: '/admin/settings', shortcut: '⌘,' },
   { id: 'logout', title: 'Log out', icon: LogOut },
 ];
 
@@ -308,7 +312,7 @@ export function SidebarNav({
   const handleSelect = onSelect || setInternalId;
 
   return (
-    <div className={`flex flex-col w-[260px] h-full bg-card/50 border-r border-border/50 p-3 font-sans ${className}`}>
+    <div className={`flex flex-col w-[260px] h-full bg-card/50 border-r border-border/50 p-3 ${className}`}>
       <WorkspaceSwitcher selected={activeWorkspace} onSelect={onWorkspaceSelect} />
 
       <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] flex flex-col gap-4 mt-2">
@@ -364,9 +368,53 @@ export default function SidebarNavPreview({ user, children }: { user?: any, chil
   const activeItem = flatMockData.find(i => i.id === activeId);
   const activeTitle = activeItem ? activeItem.title : 'Dashboard';
 
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<SearchResultItem[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+
+  useEffect(() => {
+    if (!isSearchOpen) {
+      setSearchQuery('');
+      setSearchResults([]);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      if (searchQuery.trim().length >= 2) {
+        setIsSearching(true);
+        const res = await globalSearch(searchQuery);
+        if (res.success && res.data) {
+          setSearchResults(res.data);
+        } else {
+          setSearchResults([]);
+        }
+        setIsSearching(false);
+      } else {
+        setSearchResults([]);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery, isSearchOpen]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsSearchOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const handleSelect = (id: string) => {
     if (id === 'search') {
       setIsSearchOpen(true);
+      return;
+    }
+    if (id === 'logout') {
+      logout();
       return;
     }
     setActiveId(id);
@@ -375,10 +423,10 @@ export default function SidebarNavPreview({ user, children }: { user?: any, chil
   return (
     <div className="flex flex-col items-center justify-center w-full min-h-screen bg-background">
       
-      <div className="relative w-full h-screen bg-card flex overflow-hidden shadow-sm ring-1 ring-black/5 dark:ring-white/5">
+      <div className="relative w-full h-screen bg-card flex overflow-hidden shadow-sm ring-1 ring-black/5 dark:ring-white/5 print:h-auto print:overflow-visible print:shadow-none print:ring-0">
         
         <div 
-          className={`h-full transition-all duration-300 ease-in-out shrink-0 overflow-hidden bg-card/50 border-r border-border/50 ${
+          className={`print:hidden h-full transition-all duration-300 ease-in-out shrink-0 overflow-hidden bg-card/50 border-r border-border/50 ${
             isOpen ? 'w-[260px] opacity-100' : 'w-0 opacity-0 border-none'
           }`}
         >
@@ -393,7 +441,7 @@ export default function SidebarNavPreview({ user, children }: { user?: any, chil
         
         <div className="flex-1 bg-black/[0.02] dark:bg-white/[0.02] flex flex-col min-w-0 transition-all duration-300">
            
-           <div className="h-14 border-b border-border/50 flex items-center px-4 justify-between bg-card shrink-0">
+           <div className="print:hidden h-14 border-b border-border/50 flex items-center px-4 justify-between bg-card shrink-0">
              <div className="flex items-center gap-3">
                <button 
                  onClick={() => setIsOpen(!isOpen)}
@@ -426,7 +474,7 @@ export default function SidebarNavPreview({ user, children }: { user?: any, chil
              </div>
            </div>
 
-            <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] print:overflow-visible">
               {children}
             </div>
          </div>
@@ -434,13 +482,15 @@ export default function SidebarNavPreview({ user, children }: { user?: any, chil
         {isSearchOpen && (
           <div className="absolute inset-0 z-50 flex items-start justify-center pt-[15vh] bg-background/40 backdrop-blur-sm px-4">
             <div className="absolute inset-0" onClick={() => setIsSearchOpen(false)} />
-            <div className="relative w-full max-w-xl bg-card border border-border/50 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-              <div className="flex items-center px-4 border-b border-border/50">
+            <div className="relative w-full max-w-xl bg-card border border-border/50 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[60vh]">
+              <div className="flex items-center px-4 border-b border-border/50 shrink-0">
                 <Search className="w-[18px] h-[18px] text-muted-foreground/70 mr-3 shrink-0" strokeWidth={1.5} />
                 <input 
                   autoFocus
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   className="flex-1 bg-transparent py-4 outline-none text-[14px] text-foreground placeholder:text-muted-foreground/50"
-                  placeholder="Search projects, docs, or actions..."
+                  placeholder="Cari pesanan, unit, game, atau paket..."
                 />
                 <kbd 
                   onClick={() => setIsSearchOpen(false)}
@@ -455,9 +505,52 @@ export default function SidebarNavPreview({ user, children }: { user?: any, chil
                   <X className="w-[18px] h-[18px]" strokeWidth={1.5} />
                 </button>
               </div>
-              <div className="p-2 py-8 flex flex-col items-center justify-center">
-                 <Command className="w-6 h-6 text-muted-foreground/30 mb-2" strokeWidth={1.5} />
-                 <p className="text-[13px] text-muted-foreground font-medium">Type a command or search...</p>
+              
+              <div className="flex-1 overflow-y-auto p-2">
+                {searchQuery.trim().length < 2 ? (
+                  <div className="py-12 flex flex-col items-center justify-center">
+                     <Command className="w-8 h-8 text-muted-foreground/20 mb-3" strokeWidth={1.5} />
+                     <p className="text-[13px] text-muted-foreground font-medium">Ketik minimal 2 huruf untuk mulai mencari...</p>
+                  </div>
+                ) : isSearching ? (
+                  <div className="py-12 flex flex-col items-center justify-center">
+                    <div className="w-6 h-6 border-2 border-[#5000ef] border-t-transparent rounded-full animate-spin mb-3"></div>
+                    <p className="text-[13px] text-muted-foreground font-medium">Mencari data...</p>
+                  </div>
+                ) : searchResults.length > 0 ? (
+                  <div className="flex flex-col gap-1">
+                    {searchResults.map((res) => (
+                      <Link 
+                        key={`${res.type}-${res.id}`}
+                        href={res.url}
+                        onClick={() => setIsSearchOpen(false)}
+                        className="flex items-center gap-3 p-3 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors group cursor-pointer"
+                      >
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
+                          res.type === 'booking' ? 'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400' :
+                          res.type === 'game' ? 'bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400' :
+                          res.type === 'unit' ? 'bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400' :
+                          'bg-green-50 text-green-600 dark:bg-green-500/10 dark:text-green-400'
+                        }`}>
+                          {res.type === 'booking' && <Ticket className="w-5 h-5" />}
+                          {res.type === 'game' && <Gamepad2 className="w-5 h-5" />}
+                          {res.type === 'unit' && <Tv className="w-5 h-5" />}
+                          {res.type === 'package' && <Wallet className="w-5 h-5" />}
+                        </div>
+                        <div className="flex flex-col flex-1 min-w-0">
+                          <span className="text-sm font-medium text-foreground truncate group-hover:text-[#5000ef] transition-colors">{res.title}</span>
+                          <span className="text-xs text-muted-foreground truncate">{res.subtitle}</span>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-muted-foreground/30 group-hover:text-[#5000ef] transition-colors" />
+                      </Link>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-12 flex flex-col items-center justify-center">
+                    <Search className="w-8 h-8 text-muted-foreground/20 mb-3" strokeWidth={1.5} />
+                    <p className="text-[13px] text-muted-foreground font-medium">Tidak ada hasil yang ditemukan untuk "{searchQuery}"</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>

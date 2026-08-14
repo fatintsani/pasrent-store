@@ -1,17 +1,34 @@
 import nodemailer from "nodemailer";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
+import { createClient } from "@/utils/supabase/server";
 
 export async function sendBookingEmail(to: string, bookingData: any, cartItems: any[]) {
-  const isDev = process.env.NODE_ENV === "development";
+  const supabase = await createClient();
+  
+  // Ambil konfigurasi dari database
+  const { data: settingsData } = await supabase.from("system_settings").select("*");
+  
+  let appMode = "development";
+  let smtpConfig = { host: "", port: "465", user: "", pass: "", from: "" };
+  
+  if (settingsData) {
+    const modeSetting = settingsData.find(s => s.key === "app_mode");
+    const smtpSetting = settingsData.find(s => s.key === "smtp_config");
+    
+    if (modeSetting) appMode = modeSetting.value;
+    if (smtpSetting) smtpConfig = smtpSetting.value;
+  }
+
+  const isDev = appMode === "development";
 
   // Hanya jalankan cek credential jika di production
-  if (!isDev && (!process.env.EMAIL_USER || !process.env.EMAIL_PASS)) {
-    console.warn("Email service is not configured. Missing EMAIL_USER or EMAIL_PASS.");
+  if (!isDev && (!smtpConfig.user || !smtpConfig.pass || !smtpConfig.host)) {
+    console.warn("Email service is not configured. Missing SMTP Credentials in Settings.");
     return false;
   }
 
-  // Gunakan Mailpit untuk development, Gmail untuk production
+  // Gunakan Mailpit untuk development, SMTP DB untuk production
   const transporter = isDev 
     ? nodemailer.createTransport({
         host: "localhost",
@@ -20,13 +37,17 @@ export async function sendBookingEmail(to: string, bookingData: any, cartItems: 
         ignoreTLS: true,
       })
     : nodemailer.createTransport({
-        service: "gmail",
+        host: smtpConfig.host,
+        port: parseInt(smtpConfig.port) || 465,
+        secure: parseInt(smtpConfig.port) === 465,
         auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASS,
+          user: smtpConfig.user,
+          pass: smtpConfig.pass,
         },
       });
 
+  const fromAddress = smtpConfig.from || '"Pasrent Store" <pasrentstore@gmail.com>';
+  
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
   const ticketUrl = `${appUrl}/ticket/${bookingData.booking_code}`;
 
@@ -79,7 +100,7 @@ export async function sendBookingEmail(to: string, bookingData: any, cartItems: 
 
   try {
     await transporter.sendMail({
-      from: '"Pasrent Store" <pasrentstore@gmail.com>',
+      from: fromAddress,
       to,
       subject: `E-Ticket Pasrent Store - ${bookingData.booking_code}`,
       html: htmlContent,

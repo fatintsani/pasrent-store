@@ -8,17 +8,17 @@ export async function createUnit(formData: FormData) {
     const supabase = await createClient();
     
     const name = formData.get("name") as string;
-    const type = formData.get("type") as string;
+    const console_type_id = formData.get("console_type_id") as string;
     const serial_number = formData.get("serial_number") as string;
     const status = formData.get("status") as string;
 
-    if (!name || !type || !status) {
+    if (!name || !console_type_id || !status) {
       return { success: false, error: "Semua field yang wajib harus diisi." };
     }
 
     const { error } = await supabase.from("units").insert({
       name,
-      type,
+      console_type_id,
       serial_number: serial_number || null,
       status,
     });
@@ -40,17 +40,17 @@ export async function updateUnit(id: string, formData: FormData) {
     const supabase = await createClient();
     
     const name = formData.get("name") as string;
-    const type = formData.get("type") as string;
+    const console_type_id = formData.get("console_type_id") as string;
     const serial_number = formData.get("serial_number") as string;
     const status = formData.get("status") as string;
 
-    if (!name || !type || !status) {
+    if (!name || !console_type_id || !status) {
       return { success: false, error: "Semua field yang wajib harus diisi." };
     }
 
     const { error } = await supabase.from("units").update({
       name,
-      type,
+      console_type_id,
       serial_number: serial_number || null,
       status,
     }).eq("id", id);

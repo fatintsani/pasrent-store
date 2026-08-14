@@ -22,8 +22,32 @@ export default function CheckoutPage() {
     const res = await submitBooking(formData);
     
     if (res.success) {
-      clearCart();
-      window.location.href = `/ticket/${res.bookingCode}`;
+      if (res.snapToken) {
+        window.snap.pay(res.snapToken, {
+          onSuccess: function(result: any){
+            clearCart();
+            window.location.href = `/ticket/${res.bookingCode}`;
+          },
+          onPending: function(result: any){
+            clearCart();
+            window.location.href = `/ticket/${res.bookingCode}`;
+          },
+          onError: function(result: any){
+            setLoading(false);
+            setErrorMsg("Pembayaran gagal! Silakan hubungi admin.");
+          },
+          onClose: function(){
+            setLoading(false);
+            // Meskipun ditutup, order sudah tercatat di database (Pending).
+            // Kita arahkan ke halaman tiket agar user bisa melihat detail pesanan.
+            clearCart();
+            window.location.href = `/ticket/${res.bookingCode}`;
+          }
+        });
+      } else {
+        clearCart();
+        window.location.href = `/ticket/${res.bookingCode}`;
+      }
     } else {
       setErrorMsg(res.error || "Gagal memproses booking");
       setLoading(false);
@@ -127,20 +151,20 @@ export default function CheckoutPage() {
                         <input id="transfer" type="radio" name="payment-method" value="transfer" className="h-4 w-4 border-gray-300 bg-white text-[#5000ef] focus:ring-2 focus:ring-[#5000ef] dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800" defaultChecked />
                       </div>
                       <div className="ms-4 text-sm">
-                        <label htmlFor="transfer" className="font-medium leading-none text-gray-900 dark:text-white"> Transfer Bank / QRIS </label>
-                        <p className="mt-1 text-xs font-normal text-gray-500 dark:text-gray-400">Bayar via transfer ke rekening kami</p>
+                        <label htmlFor="transfer" className="font-medium leading-none text-gray-900 dark:text-white cursor-pointer"> Midtrans </label>
+                        <p className="mt-1 text-xs font-normal text-gray-500 dark:text-gray-400">Bayar online via QRIS, E-Wallet, atau Transfer Bank</p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 ps-4 dark:border-gray-700 dark:bg-gray-800/50 opacity-50 cursor-not-allowed">
+                  <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 ps-4 dark:border-gray-700 dark:bg-gray-800/50">
                     <div className="flex items-start">
                       <div className="flex h-5 items-center">
-                        <input disabled id="cod" type="radio" name="payment-method" value="cod" className="h-4 w-4 border-gray-300 bg-white text-[#5000ef]" />
+                        <input id="cod" type="radio" name="payment-method" value="cod" className="h-4 w-4 border-gray-300 bg-white text-[#5000ef] focus:ring-2 focus:ring-[#5000ef] dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800" />
                       </div>
                       <div className="ms-4 text-sm">
-                        <label htmlFor="cod" className="font-medium leading-none text-gray-900 dark:text-white"> Bayar di Tempat (COD) </label>
-                        <p className="mt-1 text-xs font-normal text-gray-500 dark:text-gray-400">Sementara belum tersedia</p>
+                        <label htmlFor="cod" className="font-medium leading-none text-gray-900 dark:text-white cursor-pointer"> Bayar di Tempat (COD) </label>
+                        <p className="mt-1 text-xs font-normal text-gray-500 dark:text-gray-400">Bayar tunai langsung saat unit diantar/diambil</p>
                       </div>
                     </div>
                   </div>

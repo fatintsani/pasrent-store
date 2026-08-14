@@ -9,7 +9,28 @@ export async function createConsoleType(formData: FormData) {
     
     const code = formData.get("code") as string;
     const name = formData.get("name") as string;
-    const image_url = formData.get("image_url") as string;
+    const imageFile = formData.get("image") as File | null;
+    let final_image_url = formData.get("image_url") as string; // For keeping old image url in edit
+
+    if (imageFile && imageFile.size > 0) {
+      const fileExt = imageFile.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('pasrent-images')
+        .upload(fileName, imageFile);
+
+      if (uploadError) {
+        return { success: false, error: "Gagal mengunggah gambar: " + uploadError.message };
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from('pasrent-images')
+        .getPublicUrl(fileName);
+        
+      final_image_url = publicUrlData.publicUrl;
+    }
+
     const badge = formData.get("badge") as string;
     const is_featured = formData.get("is_featured") === "true";
     
@@ -24,7 +45,7 @@ export async function createConsoleType(formData: FormData) {
     const { error } = await supabase.from("console_types").insert({
       code: code.toUpperCase(),
       name,
-      image_url: image_url || null,
+      image_url: final_image_url || null,
       badge: badge || null,
       is_featured,
       features,
@@ -51,7 +72,28 @@ export async function updateConsoleType(id: string, formData: FormData) {
     
     const code = formData.get("code") as string;
     const name = formData.get("name") as string;
-    const image_url = formData.get("image_url") as string;
+    const imageFile = formData.get("image") as File | null;
+    let final_image_url = formData.get("image_url") as string; // The existing image URL or a new one
+
+    if (imageFile && imageFile.size > 0) {
+      const fileExt = imageFile.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('pasrent-images')
+        .upload(fileName, imageFile);
+
+      if (uploadError) {
+        return { success: false, error: "Gagal mengunggah gambar: " + uploadError.message };
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from('pasrent-images')
+        .getPublicUrl(fileName);
+        
+      final_image_url = publicUrlData.publicUrl;
+    }
+
     const badge = formData.get("badge") as string;
     const is_featured = formData.get("is_featured") === "true";
     
@@ -65,7 +107,7 @@ export async function updateConsoleType(id: string, formData: FormData) {
     const { error } = await supabase.from("console_types").update({
       code: code.toUpperCase(),
       name,
-      image_url: image_url || null,
+      image_url: final_image_url || null,
       badge: badge || null,
       is_featured,
       features,
@@ -94,6 +136,24 @@ export async function deleteConsoleType(id: string) {
 
     if (error) {
       return { success: false, error: "Gagal menghapus tipe konsol (Mungkin sedang terkait dengan data unit/paket)." };
+    }
+
+    revalidatePath("/admin/console-types");
+    revalidatePath("/konsol");
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: "Terjadi kesalahan sistem." };
+  }
+}
+
+export async function deleteMultipleConsoleTypes(ids: string[]) {
+  try {
+    const supabase = await createClient();
+    
+    const { error } = await supabase.from("console_types").delete().in("id", ids);
+
+    if (error) {
+      return { success: false, error: "Gagal menghapus beberapa tipe konsol." };
     }
 
     revalidatePath("/admin/console-types");
