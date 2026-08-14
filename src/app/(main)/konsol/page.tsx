@@ -2,13 +2,19 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
+import { getPackages } from "@/app/actions/catalog";
 
 export const metadata: Metadata = {
   title: "Konsol & Harga Sewa - Pasrent Store",
   description: "Pilihan harga sewa PS3 dan PS4 serta kelengkapan sewa yang Anda dapatkan di Pasrent Store.",
 };
 
-export default function KonsolPage() {
+export default async function KonsolPage() {
+  const { data: packages } = await getPackages();
+
+  const ps3Packages = packages.filter(p => p.console_type === 'PS3').sort((a, b) => a.duration_hours - b.duration_hours);
+  const ps4Packages = packages.filter(p => p.console_type === 'PS4').sort((a, b) => a.duration_hours - b.duration_hours);
+
   return (
     <main className="min-h-screen pt-24 pb-20 bg-white dark:bg-[#0d0e11] transition-colors duration-300">
       <section className="px-8 py-24 relative transition-colors duration-300">
@@ -36,13 +42,19 @@ export default function KonsolPage() {
                 <div>
                   <h3 className="font-bold text-2xl text-gray-900 dark:text-gray-100">PlayStation 3</h3>
                 </div>
-                <div className="mt-6 flex items-end gap-2">
-                  <span className="text-4xl font-bold">Rp 40.000</span>
-                  <span className="text-gray-500 font-medium mb-1">/ 12 Jam</span>
-                </div>
-                <div className="mt-2 flex items-end gap-2">
-                  <span className="text-2xl font-bold text-gray-700 dark:text-gray-300">Rp 60.000</span>
-                  <span className="text-gray-500 font-medium mb-1">/ 24 Jam</span>
+                
+                <div className="mt-6 flex flex-col gap-3">
+                  {ps3Packages.map((pkg, idx) => (
+                    <div key={pkg.id} className="flex items-end gap-2">
+                      <span className={`${idx === 0 ? 'text-4xl' : 'text-2xl'} font-bold ${idx !== 0 && 'text-gray-700 dark:text-gray-300'}`}>
+                        Rp {pkg.price.toLocaleString('id-ID')}
+                      </span>
+                      <span className="text-gray-500 font-medium mb-1">/ {pkg.duration_hours} Jam</span>
+                    </div>
+                  ))}
+                  {ps3Packages.length === 0 && (
+                    <p className="text-gray-500 italic">Harga belum diatur</p>
+                  )}
                 </div>
 
                 <ul className="flex flex-col gap-4 mt-10 text-gray-600 dark:text-gray-400">
@@ -90,13 +102,19 @@ export default function KonsolPage() {
                 <div>
                   <h3 className="font-bold text-2xl">PlayStation 4</h3>
                 </div>
-                <div className="mt-6 flex items-end gap-2">
-                  <span className="text-4xl font-bold">Rp 80.000</span>
-                  <span className="text-white/80 font-medium mb-1">/ 12 Jam</span>
-                </div>
-                <div className="mt-2 flex items-end gap-2">
-                  <span className="text-2xl font-bold text-white/90">Rp 120.000</span>
-                  <span className="text-white/80 font-medium mb-1">/ 24 Jam</span>
+                
+                <div className="mt-6 flex flex-col gap-3">
+                  {ps4Packages.map((pkg, idx) => (
+                    <div key={pkg.id} className="flex items-end gap-2">
+                      <span className={`${idx === 0 ? 'text-4xl text-white' : 'text-2xl text-white/90'} font-bold`}>
+                        Rp {pkg.price.toLocaleString('id-ID')}
+                      </span>
+                      <span className="text-white/80 font-medium mb-1">/ {pkg.duration_hours} Jam</span>
+                    </div>
+                  ))}
+                  {ps4Packages.length === 0 && (
+                    <p className="text-white/70 italic">Harga belum diatur</p>
+                  )}
                 </div>
 
                 <ul className="flex flex-col gap-4 mt-10 text-white font-medium">
