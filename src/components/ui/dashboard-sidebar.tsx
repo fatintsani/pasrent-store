@@ -65,7 +65,8 @@ const mockNavGroups: NavGroupData[] = [
   {
     heading: 'Manajemen Data',
     items: [
-      { id: 'units', title: 'Data Unit (Konsol)', icon: Tv, href: '/admin/units' },
+      { id: 'console-types', title: 'Tipe Konsol', icon: Tv, href: '/admin/console-types' },
+      { id: 'units', title: 'Data Unit', icon: Tv, href: '/admin/units' },
       { id: 'games', title: 'Katalog Game', icon: Gamepad2, href: '/admin/games' },
       { id: 'packages', title: 'Paket Harga', icon: Wallet, href: '/admin/packages' },
     ]
