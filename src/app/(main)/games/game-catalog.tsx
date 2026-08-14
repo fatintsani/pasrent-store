@@ -35,8 +35,8 @@ export default function GameCatalog({ initialGames }: { initialGames: Game[] }) 
     // 2. Tab Filter
     if (activeFilter === "ALL") return true;
     if (activeFilter === "MULTIPLAYER") return game.is_multiplayer;
-    if (activeFilter === "PS4") return game.supported_consoles.includes("PS4");
-    if (activeFilter === "PS3") return game.supported_consoles.includes("PS3");
+    if (activeFilter === "PS4") return (game.supported_consoles || []).includes("PS4");
+    if (activeFilter === "PS3") return (game.supported_consoles || []).includes("PS3");
 
     return true;
   });
@@ -87,7 +87,7 @@ export default function GameCatalog({ initialGames }: { initialGames: Game[] }) 
             >
               {/* Badges Absolute */}
               <div className="absolute top-4 left-4 z-20 flex flex-col gap-2">
-                {game.supported_consoles.map(console => (
+                {(game.supported_consoles || []).map(console => (
                   <span key={console} className={`px-3 py-1 rounded-full text-xs font-bold shadow-md ${
                     console === 'PS4' 
                       ? 'bg-[#003791] text-white border border-[#003791]' 

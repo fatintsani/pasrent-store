@@ -44,15 +44,14 @@ export default async function KonsolPage() {
                 </div>
                 
                 <div className="mt-6 flex flex-col gap-3">
-                  {ps3Packages.map((pkg, idx) => (
-                    <div key={pkg.id} className="flex items-end gap-2">
-                      <span className={`${idx === 0 ? 'text-4xl' : 'text-2xl'} font-bold ${idx !== 0 && 'text-gray-700 dark:text-gray-300'}`}>
-                        Rp {pkg.price.toLocaleString('id-ID')}
+                  {ps3Packages.length > 0 ? (
+                    <div className="flex flex-col">
+                      <span className="text-gray-500 font-medium mb-1">Mulai dari</span>
+                      <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">
+                        Rp {Math.min(...ps3Packages.map(p => p.price)).toLocaleString('id-ID')} - {Math.max(...ps3Packages.map(p => p.price)).toLocaleString('id-ID')}
                       </span>
-                      <span className="text-gray-500 font-medium mb-1">/ {pkg.duration_hours} Jam</span>
                     </div>
-                  ))}
-                  {ps3Packages.length === 0 && (
+                  ) : (
                     <p className="text-gray-500 italic">Harga belum diatur</p>
                   )}
                 </div>
@@ -104,15 +103,14 @@ export default async function KonsolPage() {
                 </div>
                 
                 <div className="mt-6 flex flex-col gap-3">
-                  {ps4Packages.map((pkg, idx) => (
-                    <div key={pkg.id} className="flex items-end gap-2">
-                      <span className={`${idx === 0 ? 'text-4xl text-white' : 'text-2xl text-white/90'} font-bold`}>
-                        Rp {pkg.price.toLocaleString('id-ID')}
+                  {ps4Packages.length > 0 ? (
+                    <div className="flex flex-col">
+                      <span className="text-white/80 font-medium mb-1">Mulai dari</span>
+                      <span className="text-4xl font-bold text-white">
+                        Rp {Math.min(...ps4Packages.map(p => p.price)).toLocaleString('id-ID')} - {Math.max(...ps4Packages.map(p => p.price)).toLocaleString('id-ID')}
                       </span>
-                      <span className="text-white/80 font-medium mb-1">/ {pkg.duration_hours} Jam</span>
                     </div>
-                  ))}
-                  {ps4Packages.length === 0 && (
+                  ) : (
                     <p className="text-white/70 italic">Harga belum diatur</p>
                   )}
                 </div>
