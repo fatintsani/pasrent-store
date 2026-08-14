@@ -28,7 +28,7 @@ export default function NewConsoleTypePage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="w-full mx-auto space-y-6">
       <div className="flex items-center gap-4">
         <Link href="/admin/console-types" className="p-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition">
           <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-300" />

@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { notFound } from "next/navigation";
 import { ArrowLeft, CheckCircle2, Clock, MapPin, Ticket, User } from "lucide-react";
+import BookingActions from "./booking-actions";
 
 export default async function AdminBookingDetailPage({
   params,
@@ -39,7 +40,7 @@ export default async function AdminBookingDetailPage({
     .eq("booking_id", booking.id);
 
   return (
-    <div className="p-8 max-w-5xl mx-auto">
+    <div className="p-4 md:p-8 w-full mx-auto">
       <div className="mb-6 flex items-center gap-4">
         <Link
           href="/admin/bookings"
@@ -174,35 +175,7 @@ export default async function AdminBookingDetailPage({
             </div>
           </div>
           
-          {/* Aksi / Update Status (Mock UI for now, we can add server actions later) */}
-          <div className="bg-[#5000ef]/5 dark:bg-[#00c3cb]/5 p-6 rounded-2xl border border-[#5000ef]/20 dark:border-[#00c3cb]/20">
-            <h3 className="text-lg font-bold mb-4">Aksi Admin</h3>
-            <div className="flex flex-wrap gap-3">
-              {booking.payment_status === 'pending' && (
-                <button className="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition">
-                  Tandai Sudah Bayar
-                </button>
-              )}
-              {booking.status === 'pending' && (
-                <button className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition">
-                  Konfirmasi Pesanan
-                </button>
-              )}
-              {booking.status === 'confirmed' && (
-                <button className="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition">
-                  Mulai Sewa (In Progress)
-                </button>
-              )}
-              {booking.status === 'in_progress' && (
-                <button className="bg-gray-800 hover:bg-gray-900 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition">
-                  Selesaikan Sewa
-                </button>
-              )}
-              <button className="bg-red-100 text-red-600 hover:bg-red-200 px-5 py-2.5 rounded-xl text-sm font-bold transition ml-auto">
-                Batalkan
-              </button>
-            </div>
-          </div>
+          <BookingActions booking={booking} />
         </div>
       </div>
     </div>
